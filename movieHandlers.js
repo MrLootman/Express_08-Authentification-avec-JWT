@@ -28,8 +28,23 @@ const movies = [
 ];
 
 const getMovies = (req, res) => {
+  let sql = "SELECT * FROM movies";
+  const sqlValues = [];
+
+  if (req.query.color != null) {
+    sql += " WHERE colors = ?";
+    sqlValues.push(req.query.color);
+
+    if (req.query.max_duration != null) {
+      sql +=" AND duration <= ?";
+      sqlValues.push(req.query.max_duration);
+    }
+  } else if (req.query.max_duration != null) {
+    sql += " WHERE max_duration <= ?"
+    sqlValues.push(req.query.max_duration)
+  }
   database
-    .query("SELECT * FROM movies")
+    .query(sql, sqlValues)
     .then(([movies]) => {
       res.json(movies);
     })
