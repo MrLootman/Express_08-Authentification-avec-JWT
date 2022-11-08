@@ -73,9 +73,31 @@ const updateUser = (req, res) => {
      })
 }
 
+const deleteUser = (req, res) => {
+    const id = parseInt(req.params.id);
+
+    database
+     .query
+     (
+        "DELETE FROM users WHERE id = ?", [id]
+     )
+     .then(([results]) => {
+        if (results.affectedRows === 0) {
+            res.status(404).send("Not found")
+        } else {
+            res.status(204).send("Deletion succeed !")
+        }
+     })
+     .catch((err) => {
+        console.log(err);
+        res.status(500).send("Missing deletion of this user")
+     })
+};
+
 module.exports = {
     getUsers,
     getUsersById,
     postUsers,
     updateUser,
+    deleteUser,
 }
