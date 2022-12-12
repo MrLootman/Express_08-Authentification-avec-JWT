@@ -1,7 +1,8 @@
 require("dotenv").config();
+const path = require("path");
 
 const express = require("express");
-const { validateMovie, validateUser } = require('./validators');
+const { validateMovie, validateUser } = require("./validators");
 
 const app = express();
 
@@ -9,10 +10,15 @@ app.use(express.json()); //middleware permettant de lire le corps des requêtes 
 
 const port = process.env.APP_PORT ?? 5000;
 
+// const welcome = (req, res) => {
+//   res.send("Welcome to my favorite list of movies");
+// };
 
 const welcome = (req, res) => {
-  res.send("Welcome to my favourite movie list");
+  res.sendFile(path.join(__dirname + "/index.html"));
 };
+
+app.use(express.static("public"));
 
 app.get("/", welcome);
 
@@ -27,7 +33,9 @@ app.get("/api/users", userHandlers.getUsers);
 app.get("/api/users/:id", userHandlers.getUsersById);
 
 app.post("/api/movies", validateMovie, movieHandlers.postMovie);
-app.post("/api/users", validateUser, userHandlers.postUsers);
+
+const { hashPassword } = require("./auth");
+app.post("/api/users", hashPassword, userHandlers.postUsers);
 
 app.put("/api/movies/:id", movieHandlers.updateMovie);
 app.put("/api/users/:id", userHandlers.updateUser);
@@ -42,5 +50,3 @@ app.listen(port, (err) => {
     console.log(`Server is listening on ${port}`);
   }
 });
-
-
