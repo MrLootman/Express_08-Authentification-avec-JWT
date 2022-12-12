@@ -66,16 +66,36 @@ const getUsersById = (req, res) => {
       [id]
     )
     .then(([users]) => {
-      if (users[0] != null) {
+      if (users[0] != null && users[0].id === req.payload.sub) {
         console.log(users[0]);
         res.status(200).json(users[0]);
       } else {
-        res.status(404).send("Not Found");
+        res.status(403).send("Forbidden");
       }
     })
     .catch((err) => {
       console.log(err);
       console.error("Error retrieving data in the database");
+    });
+};
+
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body;
+
+  database
+    .query("SELECT * FROM users WHERE email = ?", [email])
+    .then(([users]) => {
+      if (users[0] != null) {
+        req.user = users[0];
+
+        next();
+      } else {
+        res.sendStatus(401);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
     });
 };
 
@@ -125,10 +145,10 @@ const deleteUser = (req, res) => {
   database
     .query("DELETE FROM users WHERE id = ?", [id])
     .then(([results]) => {
-      if (results.affectedRows === 0) {
-        res.status(404).send("Not found");
-      } else {
+      if (results.affectedRows === 1 && users[0].id === req.payload.sub) {
         res.status(204).send("Deletion succeed !");
+      } else {
+        res.status(404).send("Not found");
       }
     })
     .catch((err) => {
@@ -143,4 +163,5 @@ module.exports = {
   postUsers,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };
